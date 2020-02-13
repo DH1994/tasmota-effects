@@ -1,0 +1,50 @@
+#!/bin/bash
+
+cd /opt/tasmota-effects
+mosquitto_sub -h 192.168.1.1 -t cmnd/# -v | while read RAW_DATA
+do
+	topic=$(echo $RAW_DATA | cut -d ' ' -f 1)
+	value=$(echo $RAW_DATA | cut -d ' ' -f 2)
+
+	if [[ $topic = 'cmnd/strobe-woonkamer' && $value = '1' ]]
+	then
+		./strobe woonkamer&
+		strobe_woonkamer=$!
+	fi
+	[[ $topic = 'cmnd/strobe-woonkamer' && $value = '0' ]] && kill -1 $strobe_woonkamer
+
+	if [[ $topic = 'cmnd/candle-woonkamer' && $value = '1' ]]
+	then
+		./candle woonkamer&
+		candle_woonkamer=$!
+	fi
+	[[ $topic = 'cmnd/candle-woonkamer' && $value = '0' ]] && kill -1 $candle_woonkamer
+
+	if [[ $topic = 'cmnd/strobe-keuken' && $value = '1' ]]
+	then
+		./strobe keuken&
+		strobe_keuken=$!
+	fi
+	[[ $topic = 'cmnd/strobe-keuken' && $value = '0' ]] && kill -1 $strobe_keuken
+
+	if [[ $topic = 'cmnd/candle-keuken' && $value = '1' ]]
+	then
+		./candle keuken&
+		candle_keuken=$!
+	fi
+	[[ $topic = 'cmnd/candle-keuken' && $value = '0' ]] && kill -1 $candle_keuken
+
+	if [[ $topic = 'cmnd/wave-keuken' && $value = '1' ]]
+	then
+		./wave keuken&
+		wave_keuken=$!
+	fi
+	[[ $topic = 'cmnd/wave-keuken' && $value = '0' ]] && kill -1 $wave_keuken
+
+	if [[ $topic = 'cmnd/wave-woonkamer' && $value = '1' ]]
+	then
+		./wave woonkamer&
+		wave_woonkamer=$!
+	fi
+	[[ $topic = 'cmnd/wave-woonkamer' && $value = '0' ]] && kill -1 $wave_woonkamer
+done

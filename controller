@@ -1,0 +1,38 @@
+#!/bin/bash
+
+devices=(slaapkamer bol eettafel woonkamer)
+
+cd /opt/tasmota-effects
+declare -A strobe=()
+declare -A candle=()
+declare -A woonkamer=()
+
+mosquitto_sub -h 192.168.1.1 -t cmnd/# -v | while read RAW_DATA
+do
+	topic=$(echo $RAW_DATA | cut -d ' ' -f 1)
+	value=$(echo $RAW_DATA | cut -d ' ' -f 2)
+
+	for dev in "${devices[@]}"
+	do
+		if [[ $topic = "cmnd/strobe-${dev}" && $value = '1' ]]
+		then
+			./strobe ${dev}&
+			strobe[${dev}]=$!
+		fi
+		[[ $topic = "cmnd/strobe-${dev}" && $value = '0' ]] && kill -1 ${strobe[$dev]}
+
+		if [[ $topic = "cmnd/candle-${dev}" && $value = '1' ]]
+		then
+			./candle ${dev}&
+			candle[${dev}]=$!
+		fi
+		[[ $topic = "cmnd/candle-${dev}" && $value = '0' ]] && kill -1 ${candle[$dev]}
+
+		if [[ $topic = "cmnd/wave-${dev}" && $value = '1' ]]
+		then
+			./wave ${dev}&
+			wave[${dev}]=$!
+		fi
+		[[ $topic = "cmnd/wave-${dev}" && $value = '0' ]] && kill -1 ${wave[$dev]}
+	done
+done
